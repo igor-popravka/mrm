@@ -1,0 +1,34 @@
+{% extends "auth-base.html.twig" %}
+
+{% block tittle %}{{ parent() }} | Sign In{% endblock %}
+
+{% block content %}
+    <div class="card card-login mx-auto mt-5">
+        <div class="card-header">Sign In</div>
+        <div class="card-body">
+            {{ form_start(form) }}
+
+            {% if errors | length > 0 %}
+                <div class="alert alert-danger" role="alert">
+                    {{ errors | raw }}
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                {{ form_label(form.login) }}
+                {{ form_widget(form.login, {'attr':{'class': 'form-control', 'placeholder': 'Enter your email'}}) }}
+                {{ form_errors(form.login) }}
+            </div>
+            <div class="form-group">
+                {{ form_label(form.password) }}
+                {{ form_widget(form.password, {'attr':{'class': 'form-control'}}) }}
+                {{ form_errors(form.password) }}
+            </div>
+            {{ form_widget(form.submit, {'attr': {'class': 'btn btn-primary btn-block'}}) }}
+            {{ form_end(form) }}
+            <div class="text-center mt-3">
+                <a class="d-block small" href="{{ path ('route_password_reset') }}">Forgot Password?</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

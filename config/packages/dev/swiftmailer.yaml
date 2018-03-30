@@ -1,0 +1,10 @@
+# See https://symfony.com/doc/current/email/dev_environment.html
+parameters:
+    mrm_email: 'noreply@itt.team'
+
+swiftmailer:
+    transport: '%env(SWIFTMAILER_TRANSPORT)%'
+    username: '%env(SWIFTMAILER_USERNAME)%'
+    password: '%env(SWIFTMAILER_PASSWORD)%'
+    host: '%env(SWIFTMAILER_HOST)%'
+    port: '%env(SWIFTMAILER_PORT)%'

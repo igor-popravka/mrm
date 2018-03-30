@@ -1,0 +1,44 @@
+{% extends "mrm-base.html.twig" %}
+
+{% block breadcrumb %}
+    {{ parent() }}
+    <li class="breadcrumb-item active">Managers</li>
+{% endblock %}
+
+{% block content %}
+    <!-- Managers DataTables -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <span class="float-sm-left">
+                <i class="fa fa-table"></i> BO Managers
+            </span>
+
+            <a class="float-sm-right" href="{{ path('route_section_managers_add') }}" title="New manager">
+                <i class="fa fa-fw fa-user-plus"></i>
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for manager in managers %}
+                    <tr>
+                        <td>{{ manager.getUsername() }}</td>
+                        <td>{{ manager.getRole() }}</td>
+                        <td>{{ manager.getStatus() }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer small text-muted"></div>
+    </div>
+{% endblock %}

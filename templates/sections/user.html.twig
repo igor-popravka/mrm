@@ -1,0 +1,21 @@
+{% extends "mrm-base.html.twig" %}
+
+{% block breadcrumb %}
+    {{ parent() }}
+    <li class="breadcrumb-item">
+        <a href="{{ path('route_section_users') }}">Users</a>
+    </li>
+    <li class="breadcrumb-item active">User</li>
+{% endblock %}
+
+{% block content %}
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="fa fa-user"></i> {{ user.getUsername() }}
+        </div>
+        <div class="card-body">
+            User Data
+        </div>
+        <div class="card-footer small text-muted"></div>
+    </div>
+{% endblock %}
