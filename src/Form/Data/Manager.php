@@ -8,59 +8,58 @@ class Manager extends AbstractData {
     /**
      * @Assert\NotBlank(message="Please type first name")
      */
-    private $first_name;
+    protected $first_name;
 
     /**
      * @Assert\NotBlank(message="Please type last name")
      */
-    private $last_name;
+    protected $last_name;
 
     /**
      * @Assert\NotBlank(message="Please type your username")
      * @Assert\Email(message="Username should be of your email in correct format")
      */
-    private $username;
-
-    /**
-     * @Assert\NotBlank(message="Please type your password")
-     * @Assert\Length(min=8, max=20, minMessage="Min length should be 8 chars")
-     */
-    private $password;
+    protected $login;
 
     /**
      * @Assert\NotBlank(message="Please type status")
      */
-    private $status;
+    protected $role;
+
+    /**
+     * @Assert\NotBlank(message="Please type status")
+     */
+    protected $status;
 
     /**
      * @Assert\Valid
      */
-    private $read_order;
+    protected $read_order;
 
     /**
      * @Assert\Valid
      */
-    private $edit_order;
+    protected $edit_order;
 
     /**
      * @Assert\Valid
      */
-    private $read_manager;
+    protected $read_manager;
 
     /**
      * @Assert\Valid
      */
-    private $edit_manager;
+    protected $edit_manager;
 
     /**
      * @Assert\Valid
      */
-    private $read_configuration;
+    protected $read_configuration;
 
     /**
      * @Assert\Valid
      */
-    private $edit_configuration;
+    protected $edit_configuration;
 
     /**
      * @return mixed
@@ -93,29 +92,29 @@ class Manager extends AbstractData {
     /**
      * @return mixed
      */
-    public function getUsername() {
-        return $this->username;
+    public function getLogin() {
+        return $this->login;
     }
 
     /**
-     * @param mixed $username
+     * @param mixed $login
      */
-    public function setUsername($username): void {
-        $this->username = $username;
+    public function setLogin($login): void {
+        $this->login = $login;
     }
 
     /**
      * @return mixed
      */
-    public function getPassword() {
-        return $this->password;
+    public function getRole() {
+        return $this->role;
     }
 
     /**
-     * @param mixed $password
+     * @param mixed $role
      */
-    public function setPassword($password): void {
-        $this->password = $password;
+    public function setRole($role): void {
+        $this->role = $role;
     }
 
     /**

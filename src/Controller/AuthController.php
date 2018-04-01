@@ -91,17 +91,17 @@ class AuthController extends MRMController {
             $resetData = $form->getData();
 
             if (($token = $this->getAuth()->resetPassword($resetData)) instanceof MRMToken) {
-                $message = (new \Swift_Message('Back Office Support'))
+                $message = (new \Swift_Message('MRM Service | Invitation'))
                     ->setFrom($this->getParameter('mrm_email'))
                     ->setTo($token->getData()['login'])
                     ->setBody($this->render('email/invite.html.twig', [
                         'NAME' => $token->getData()['full_name'],
+                        'LOGIN' => $token->getData()['login'],
                         'PASSWORD_RESET_LINK' => $this->generateUrl('route_password_change', [
                             'hash' => $token->getHash()
                         ], UrlGeneratorInterface::ABSOLUTE_URL),
                         'EXPIRE_LINK' => 4
                     ]), 'text/html');
-
                 $mailer->send($message);
 
                 $this->addFlash('success', "Check your email for a link to reset your password. If it doesn't appear within a few minutes, check your spam folder.");
@@ -132,6 +132,7 @@ class AuthController extends MRMController {
             $changeData = $form->getData();
 
             if ($this->getAuth()->changePassword($changeData, $hash)) {
+                $this->getAuth()->logout();
                 $this->addFlash('success', "Your password was changed successfully!");
                 return $this->redirectToLogin();
             }

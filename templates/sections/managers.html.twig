@@ -10,12 +10,14 @@
     <div class="card mb-3">
         <div class="card-header">
             <span class="float-sm-left">
-                <i class="fa fa-table"></i> BO Managers
+                <i class="fa fa-table"></i> MRM Managers
             </span>
 
-            <a class="float-sm-right" href="{{ path('route_section_managers_add') }}" title="New manager">
-                <i class="fa fa-fw fa-user-plus"></i>
-            </a>
+            {% if auth.canDo('edit_manager') %}
+                <a class="float-sm-right" href="{{ path('route_section_manager_new') }}" title="New manager">
+                    <i class="fa fa-fw fa-user-plus"></i>
+                </a>
+            {% endif %}
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -23,17 +25,19 @@
                     <thead>
                     <tr>
                         <th>Name</th>
+                        <th>Login</th>
                         <th>Role</th>
                         <th>Status</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for manager in managers %}
-                    <tr>
-                        <td>{{ manager.getUsername() }}</td>
-                        <td>{{ manager.getRole() }}</td>
-                        <td>{{ manager.getStatus() }}</td>
-                    </tr>
+                        <tr>
+                            <td><a href="{{ path('route_section_manager_edit', {id:  manager.getId()}) }}">{{ manager.getFullName() }}</a></td>
+                            <td>{{ manager.getLogin() }}</td>
+                            <td>{{ manager.getRole() }}</td>
+                            <td>{{ manager.getStatus() == 1 ? 'active' : 'disabled' }}</td>
+                        </tr>
                     {% endfor %}
                     </tbody>
                 </table>

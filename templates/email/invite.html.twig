@@ -2,16 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Welcome to Back Office!</title>
+    <title>MRM Service | Invitation</title>
 </head>
 <body>
-    <h3>Dear {{NAME}},</h3>
-    <p>You can enter Back Office the following</p>
-    <p><b>Login:</b> {{LOGIN}}</p>
-    <p>and</p>
-    <p><b>Password:</b> {{PASSWORD}}</p>
+<h3>Dear {{ NAME }},</h3>
+<p>Congratulations! MRM service has created new account for you. You can use following account data to sign in:</p>
+<p><b>Login:</b> {{ LOGIN }}</p>
+<p><b>Password:</b> <a href="{{ PASSWORD_RESET_LINK }}">please click for change</a> (expired in {{ EXPIRE_LINK }} hours)</p>
 
-    <p>Yours faithfully,<br/>
-       Back Office Team</p>
+<p>With best wish,<br/>
+    MRM team!</p>
 </body>
 </html>

@@ -1,0 +1,107 @@
+{% extends "mrm-base.html.twig" %}
+
+{% block breadcrumb %}
+    {{ parent() }}
+    <li class="breadcrumb-item">
+        <a href="{{ path('route_section_managers') }}">Managers</a>
+    </li>
+    <li class="breadcrumb-item active">New</li>
+{% endblock %}
+
+{% block content %}
+    <!-- Managers DataTables -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="fa fa-user"></i> Manager's personal data
+        </div>
+        <div class="card-body">
+            {{ form_start(form) }}
+            {% if errors | length > 0 %}
+                <div class="alert alert-danger" role="alert">
+                    {{ errors | raw }}
+                </div>
+            {% endif %}
+            <table>
+                <tr>
+                    <td colspan="2"><h4>Account options:</h4></td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="form-group">
+                            {{ form_label(form.first_name) }}
+                            {{ form_widget(form.first_name) }}
+                            {{ form_errors(form.first_name) }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            {{ form_label(form.last_name) }}
+                            {{ form_widget(form.last_name) }}
+                            {{ form_errors(form.last_name) }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <div class="form-group">
+                            {{ form_label(form.login) }}
+                            {{ form_widget(form.login) }}
+                            {{ form_errors(form.login) }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="form-group">
+                            {{ form_label(form.role) }}
+                            {{ form_widget(form.role) }}
+                            {{ form_errors(form.role) }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            {{ form_label(form.status) }}
+                            {{ form_widget(form.status) }}
+                            {{ form_errors(form.status) }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <h4>Permissions:</h4>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>#</th>
+                                <th>Read</th>
+                                <th>Edit</th>
+                            </tr>
+                            <tr>
+                                <th>Orders</th>
+                                <td>{{ form_widget(form.read_order) }}</td>
+                                <td>{{ form_widget(form.edit_order) }}</td>
+                            </tr>
+                            <tr>
+                                <th>Managers</th>
+                                <td>{{ form_widget(form.read_manager) }}</td>
+                                <td>{{ form_widget(form.edit_manager) }}</td>
+                            </tr>
+                            <tr>
+                                <th>Configurations</th>
+                                <td>{{ form_widget(form.read_configuration) }}</td>
+                                <td>{{ form_widget(form.edit_configuration) }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    {{ form_widget(form.submit) }}
+                </div>
+            </div>
+            {{ form_end(form) }}
+        </div>
+        <div class="card-footer small text-muted"></div>
+    </div>
+{% endblock %}
+

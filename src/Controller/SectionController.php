@@ -3,10 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Manager;
-use App\Entity\User;
+use App\Entity\Permissions;
+use App\Form\Data\Manager as ManagerData;
+use App\Form\ManagerType;
 use App\Repository\ManagerRepository;
 use App\Service\Auth;
 use App\Service\Country;
+use App\Service\MRMToken;
 use App\Service\PasswordEncoder;
 use App\Service\Token;
 use App\Service\CRM\IFTZohoClient;
@@ -49,10 +52,9 @@ class SectionController extends MRMController {
      */
     public function managers() {
         if (!$this->getAuth()->isAuthenticated()) {
+            $this->getAuth()->logout();
             return $this->redirectToLogin();
-        }
-
-        if (!$this->getAuth()->isAdmin()) {
+        } else if (!$this->getAuth()->canDo(Permissions::CAN_READ_MANAGER)) {
             $this->addFlash('danger', "You haven't permissions to do this action.");
             return $this->redirectToDashboard();
         }
@@ -67,7 +69,7 @@ class SectionController extends MRMController {
     }
 
     /**
-     * @Route("/managers/add", name="route_section_managers_add")
+     * @Route("/managers/new", name="route_section_manager_new")
      *
      *
      * @param Request $request
@@ -76,113 +78,108 @@ class SectionController extends MRMController {
      *
      * @return RedirectResponse|Response
      */
-    public function addManager(Request $request, \Swift_Mailer $mailer, PasswordEncoder $encoder) {
+    public function newManager(Request $request, \Swift_Mailer $mailer, PasswordEncoder $encoder) {
         if (!$this->getAuth()->isAuthenticated()) {
+            $this->getAuth()->logout();
             return $this->redirectToLogin();
-        }
-
-        if (!$this->getAuth()->isAdmin()) {
+        } else if (!$this->getAuth()->canDo(Permissions::CAN_EDIT_MANAGER)) {
             $this->addFlash('danger', "You haven't permissions to do this action.");
             return $this->redirectToDashboard();
         }
 
-        $manager = new Manager();
-        $manager->setPassword($encoder->generateRaw());
-
-        $form = $this->createFormBuilder($manager)
-            ->add('login', Type\EmailType::class)
-            ->add('role', Type\ChoiceType::class, [
-                'choices' => [
-                    'Full Access Manager' => "ROLE_FULL_ACCESS_MANAGER"
-                ]
-            ])
-            ->add('status', Type\ChoiceType::class, [
-                'choices' => [
-                    'Active' => 1,
-                    'Disabled' => 0
-                ]
-            ])
-            ->add('submit', Type\SubmitType::class, ['label' => 'Add Manager'])
-            ->getForm();
+        $form = $this->createForm(ManagerType::class);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $password = $manager->getPassword();
-            $manager->setPassword($encoder->hashPassword($password));
+            /** @var \App\Form\Data\Manager $managerData */
+            $managerData = $form->getData();
 
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($manager);
-            $em->flush();
+            if (($token = $this->getAuth()->createNewManager($managerData)) instanceof MRMToken) {
+                $message = (new \Swift_Message('MRM Service | Invitation'))
+                    ->setFrom($this->getParameter('mrm_email'))
+                    ->setTo($token->getData()['login'])
+                    ->setBody($this->render('email/invite.html.twig', [
+                        'NAME' => $token->getData()['full_name'],
+                        'LOGIN' => $token->getData()['login'],
+                        'PASSWORD_RESET_LINK' => $this->generateUrl('route_password_change', [
+                            'hash' => $token->getHash()
+                        ], UrlGeneratorInterface::ABSOLUTE_URL),
+                        'EXPIRE_LINK' => 4
+                    ]), 'text/html');
+                $mailer->send($message);
 
-            $message = (new \Swift_Message('Welcome to Back Office'))
-                ->setFrom($this->getParameter('ift_from_email'))
-                ->setTo($manager->getUsername())
-                ->setBody($this->render('email/invite.html.twig', [
-                    'NAME' => $manager->getUsername(),
-                    'LOGIN' => $manager->getUsername(),
-                    'PASSWORD' => $password
-                ]), 'text/html');
-            $mailer->send($message);
+                $this->addFlash('success', 'The new manager was created successfully and we sent massage with registration info.');
+                return $this->redirectToRoute('route_section_managers');
+            }
 
-            $this->addFlash('success', 'The user was added successfully and we sent massage with registration info.');
-            return $this->redirectToRoute('route_section_managers');
-
+            $form->addError(new FormError('Error during creating new account'));
         }
 
-        return $this->render(
-            'sections/managers-add.html.twig',
-            ['form' => $form->createView()]
-        );
+        return $this->render('sections/manager.html.twig', [
+            'form' => $form->createView(),
+            'errors' => $this->renderFormErrors($form)
+        ]);
     }
 
     /**
-     * @Route("/users", name="route_section_users")
+     * @Route("/manager/{id}", name="route_section_manager_edit")
+     *
+     *
+     * @param Request $request
+     * @param \Swift_Mailer $mailer
+     * @param PasswordEncoder $encoder
      *
      * @return RedirectResponse|Response
      */
-    public function users() {
+    public function editManager(Request $request, \Swift_Mailer $mailer, PasswordEncoder $encoder) {
         if (!$this->getAuth()->isAuthenticated()) {
+            $this->getAuth()->logout();
             return $this->redirectToLogin();
-        }
-
-        if (!$this->getAuth()->isAdmin()) {
+        } else if (!$this->getAuth()->canDo(Permissions::CAN_READ_MANAGER) || !$this->getAuth()->canDo(Permissions::CAN_EDIT_MANAGER)) {
             $this->addFlash('danger', "You haven't permissions to do this action.");
             return $this->redirectToDashboard();
         }
 
-        $repository = $this->getDoctrine()->getRepository(User::class);
-        $users = $repository->findAll();
+        $managerData = new ManagerData();
+        $managerData->initEntity($this->getAuth()->getManager());
+        $managerData->initEntity($this->getAuth()->getManager()->getPermissions());
 
-        return $this->render(
-            'sections/users.html.twig',
-            ['users' => $users]
+        $form = $this->createForm(
+            ManagerType::class,
+            $managerData
         );
-    }
 
-    /**
-     * @Route("/user/{id}", name="route_section_user")
-     *
-     * @param $id
-     *
-     * @return RedirectResponse|Response
-     */
-    public function user($id) {
-        if (!$this->getAuth()->isAuthenticated()) {
-            return $this->redirectToLogin();
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var \App\Form\Data\Manager $managerData */
+            $managerData = $form->getData();
+
+            if (($token = $this->getAuth()->createNewManager($managerData)) instanceof MRMToken) {
+                /* $message = (new \Swift_Message('MRM Service | Invitation'))
+                     ->setFrom($this->getParameter('mrm_email'))
+                     ->setTo($token->getData()['login'])
+                     ->setBody($this->render('email/invite.html.twig', [
+                         'NAME' => $token->getData()['full_name'],
+                         'LOGIN' => $token->getData()['login'],
+                         'PASSWORD_RESET_LINK' => $this->generateUrl('route_password_change', [
+                             'hash' => $token->getHash()
+                         ], UrlGeneratorInterface::ABSOLUTE_URL),
+                         'EXPIRE_LINK' => 4
+                     ]), 'text/html');
+                 $mailer->send($message);*/
+
+                $this->addFlash('success', 'The new manager was created successfully and we sent massage with registration info.');
+                return $this->redirectToRoute('route_section_managers');
+            }
+
+            $form->addError(new FormError('Error during creating new account'));
         }
 
-        if (!$this->getAuth()->isAdmin() || !$this->getAuth()->canDo(Auth::CAN_EDIT_USER, Auth::CAN_READ_USER)) {
-            $this->addFlash('danger', "You haven't permissions to do this action.");
-            return $this->redirectToDashboard();
-        }
-
-        $user_repository = $this->getDoctrine()->getRepository(User::class);
-        $user = $user_repository->find($id);
-
-        return $this->render(
-            'sections/user.html.twig',
-            ['user' => $user]
-        );
+        return $this->render('sections/manager.html.twig', [
+            'form' => $form->createView(),
+            'errors' => $this->renderFormErrors($form)
+        ]);
     }
 }

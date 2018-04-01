@@ -10,7 +10,7 @@ namespace App\Entity;
 
 
 abstract class AbstractEntity {
-    public function set(string $field, mixed $value) {
+    public function set(string $field, $value) {
         $method = $this->getGetSetMethod($field, 'set');
         if (method_exists($this, $method)) {
             $this->{$method}($value);
@@ -20,7 +20,7 @@ abstract class AbstractEntity {
     public function get(string $field) {
         $method = $this->getGetSetMethod($field, 'get');
         if (method_exists($this, $method)) {
-            return $this->{$method};
+            return $this->{$method}();
         }
         return null;
     }
@@ -29,18 +29,13 @@ abstract class AbstractEntity {
         $method = $this->getGetSetMethod($field, 'is');
 
         if (method_exists($this, $method)) {
-            return $this->{$method};
+            return $this->{$method}();
         }
         return false;
     }
 
-    public function has(string $field, mixed $value = null) {
-        $method = $this->getGetSetMethod($field, 'has');
-
-        if (method_exists($this, $method)) {
-            return $this->{$method}($value);
-        }
-        return false;
+    public function has(string $field) {
+        return property_exists($this, $field);
     }
 
     private function getGetSetMethod(string $field, string $type) {

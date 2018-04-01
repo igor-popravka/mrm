@@ -11,6 +11,7 @@ use App\MRMException;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Form\Data\Manager as ManagerData;
 
 
 /**
@@ -208,5 +209,44 @@ class Auth extends AbstractService {
         return false;
     }
 
+    /**
+     * @param ManagerData $managerData
+     * @return MRMToken|null
+     */
+    public function createNewManager(ManagerData $managerData) {
+        if ($this->isAdmin()) {
+            $uniqueLogin = ($this->getManager()->getLogin() != $managerData->getLogin());
+        } else {
+            $uniqueLogin = !($this->findManager($managerData->getLogin()) instanceof Manager);
+        }
 
+        if ($uniqueLogin) {
+            $em = $this->getDoctrine()->getManager();
+
+            $manager = new Manager();
+            $managerData->handleEntity($manager);
+
+            $passwordHash = $this->getEncoder()->hashPassword($this->getEncoder()->generateRaw());
+            $manager->setPassword($passwordHash);
+
+            $permissions = new Permissions();
+            $managerData->handleEntity($permissions);
+
+            $em->persist($permissions);
+            $em->flush();
+
+            $manager->setPermissions($permissions);
+
+            $em->persist($manager);
+            $em->flush();
+
+            $token = $this->getToken()->generate([
+                'login' => $manager->getLogin(),
+                'full_name' => $manager->getFullName()
+            ], new \DateTime('+4 hours'));
+
+            return $token;
+        }
+        return null;
+    }
 }

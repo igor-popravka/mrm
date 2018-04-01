@@ -13,8 +13,22 @@ use App\Entity\AbstractEntity;
 
 abstract class AbstractData {
     public function handleEntity(AbstractEntity $entity) {
-        foreach ($this as $field => $value) {
-            $entity->setField($field, $value);
+        $properties = (new \ReflectionObject($this))->getProperties(\ReflectionProperty::IS_PROTECTED);
+
+        foreach ($properties  as $property) {
+            /** @var \ReflectionProperty $property */
+            $entity->set($property->name, $this->{$property->name});
+        }
+    }
+
+    public function initEntity(AbstractEntity $entity){
+        $properties = (new \ReflectionObject($this))->getProperties(\ReflectionProperty::IS_PROTECTED);
+
+        foreach ($properties  as $property) {
+            /** @var \ReflectionProperty $property */
+            if($entity->has($property->name)){
+                $this->{$property->name} = $entity->get($property->name);
+            }
         }
     }
 }
