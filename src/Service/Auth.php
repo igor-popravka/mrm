@@ -91,6 +91,12 @@ class Auth extends AbstractService {
         return $manager_repository->findOneBy(['login' => $login]);
     }
 
+    public function getManagerByID(int $id) {
+        /** @var Manager|null $manager */
+        $manager_repository = $this->getDoctrine()->getRepository(Manager::class);
+        return $manager_repository->find($id);
+    }
+
     public function logout() {
         $this->endSession();
         unset($this->manager);
@@ -248,5 +254,27 @@ class Auth extends AbstractService {
             return $token;
         }
         return null;
+    }
+
+    public function updateManager(ManagerData $managerData) {
+        if (($manager = $this->findManager($managerData->getLogin())) instanceof Manager) {
+            $em = $this->getDoctrine()->getManager();
+
+            $managerData->handleEntity($manager);
+            $em->persist($manager);
+            $em->flush();
+
+            $managerData->handleEntity($manager->getPermissions());
+            $em->persist($manager->getPermissions());
+            $em->flush();
+
+            if ($this->getManager()->getId() == $manager->getId()) {
+                $this->manager = $manager;
+                $this->updateSession();
+            }
+
+            return true;
+        }
+        return false;
     }
 }

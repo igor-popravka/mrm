@@ -9,6 +9,8 @@
 namespace App\Entity;
 
 
+use App\Form\Data\AbstractData;
+
 abstract class AbstractEntity {
     public function set(string $field, $value) {
         $method = $this->getGetSetMethod($field, 'set');
@@ -34,8 +36,13 @@ abstract class AbstractEntity {
         return false;
     }
 
-    public function has(string $field) {
-        return property_exists($this, $field);
+    public function has(string $field, $value = null) {
+        $method = $this->getGetSetMethod($field, 'has');
+
+        if (method_exists($this, $method)) {
+            return $this->{$method}($value);
+        }
+        return false;
     }
 
     private function getGetSetMethod(string $field, string $type) {
