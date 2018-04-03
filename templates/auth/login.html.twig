@@ -6,8 +6,15 @@
     <div class="card card-login mx-auto mt-5">
         <div class="card-header">Sign In</div>
         <div class="card-body">
-            {{ form_start(form) }}
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
 
+            {{ form_start(form) }}
             {% if errors | length > 0 %}
                 <div class="alert alert-danger" role="alert">
                     {{ errors | raw }}
