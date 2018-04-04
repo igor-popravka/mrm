@@ -1,0 +1,133 @@
+{% extends "mrm-base.html.twig" %}
+
+{% block breadcrumb %}
+    {{ parent() }}
+    <li class="breadcrumb-item">
+        <a href="{{ path('route_section_product', {action: 'list'}) }}">Products</a>
+    </li>
+    <li class="breadcrumb-item active">New Product</li>
+{% endblock %}
+
+{% block content %}
+    <!-- Managers DataTables -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="fa fa-user"></i> Product data
+        </div>
+        <div class="card-body">
+            {{ form_start(form) }}
+            {% if errors | length > 0 %}
+                <div class="alert alert-danger" role="alert">
+                    {{ errors | raw }}
+                </div>
+            {% endif %}
+            <table width="50%">
+                <tr>
+                    <td colspan="2">
+                        <div class="form-group">
+                            {{ form_label(form.code) }}
+                            {{ form_widget(form.code) }}
+                            {{ form_errors(form.code) }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <div class="form-group">
+                            {{ form_label(form.name) }}
+                            {{ form_widget(form.name) }}
+                            {{ form_errors(form.name) }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="form-group">
+                            {{ form_label(form.cost) }}
+                            {{ form_widget(form.cost) }}
+                            {{ form_errors(form.cost) }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            {{ form_label(form.currency) }}
+                            {{ form_widget(form.currency) }}
+                            {{ form_errors(form.currency) }}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <h4>Assets:</h4>
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th width="50%">Name</th>
+                                <th width="50%">Value</th>
+                                <th width="20"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% if assets is defined %}
+                                {% for asset in assets %}
+                                    <tr>
+                                        <td>{{ asset.name }}</td>
+                                        <td>{{ asset.value }}</td>
+                                        <td>
+                                            <a class="asset-button-remove" href="" title="Remove">
+                                                <i class="fa fa-fw fa-minus-square" style="color: red;"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
+                            </tbody>
+                            <tfoot>
+                            <tr id="asset-inputs" hidden>
+                                <td>
+                                    <select id="asset_name">
+                                        <option>USD</option>
+                                        <option>MSD</option>
+                                        <option>CRP</option>
+                                        <option>CHF</option>
+                                    </select>
+                                </td>
+                                <td><input type="text" id="asset_value"></td>
+                                <td>
+                                    <a href="" id="asset-button-complete" title="Complete">
+                                        <i class="fa fa-fw fa-check-square" style="color: green;"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3">
+                                    <a href="" id="asset-button-add" title="Add">
+                                        <i class="fa fa-fw fa-plus-square"></i>
+                                        Add
+                                    </a>
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                        <div class="form-group">
+                            {{ form_widget(form.assets) }}
+                            {{ form_errors(form.assets) }}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    {{ form_widget(form.submit) }}
+                </div>
+            </div>
+            {{ form_end(form) }}
+        </div>
+        <div class="card-footer small text-muted"></div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    {{ parent() }}
+    <script src="{{ asset('js/product.js') }}"></script>
+{% endblock %}

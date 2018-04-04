@@ -1,0 +1,49 @@
+{% extends "mrm-base.html.twig" %}
+
+{% block breadcrumb %}
+    {{ parent() }}
+    <li class="breadcrumb-item active">Product List</li>
+{% endblock %}
+
+{% block content %}
+    <!-- Managers DataTables -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <span class="float-sm-left">
+                <i class="fa fa-table"></i> Products
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Assets</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for product in products %}
+                        <tr>
+                            <td><a href="{{ path('route_section_product', {action: 'edit', id:  product.getId()}) }}">{{ product.getCode() }}</a></td>
+                            <td>{{ product.getName() }}</td>
+                            <td>{{ product.getCost() }} {{ product.getCurrency() }}</td>
+                            <td>{{ product.assets2string() }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer small text-muted">
+            {% if auth.canDo('edit_configuration') %}
+                <a class="float-sm-left" href="{{ path('route_section_product', {action: 'new'}) }}" title="New product">
+                    <i class="fa fa-fw fa-plus-square"></i>
+                    Create New Product
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

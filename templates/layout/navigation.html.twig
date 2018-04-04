@@ -12,14 +12,28 @@
                 </a>
             </li>
             {# --- Show NO users link if a possibility --- #}
-
+            {% if auth.canDo('read_manager') %}
             <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Managers">
                 <a class="nav-link" href="{{ path('route_section_managers') }}">
                     <i class="fa fa-fw fa-user-secret"></i>
                     <span class="nav-link-text">Managers</span>
                 </a>
             </li>
+            {% endif %}
 
+            {% if auth.canDo('read_configuration') %}
+                <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Components">
+                    <a class="nav-link nav-link-collapse collapsed" data-toggle="collapse" href="#collapseComponents" data-parent="#exampleAccordion">
+                        <i class="fa fa-fw fa-wrench"></i>
+                        <span class="nav-link-text">Components</span>
+                    </a>
+                    <ul class="sidenav-second-level collapse" id="collapseComponents">
+                        <li>
+                            <a href="{{ path('route_section_product', {action: 'list'}) }}"><i class="fa fa-fw fa-table"></i> Products</a>
+                        </li>
+                    </ul>
+                </li>
+            {% endif %}
 
             {#
             <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">

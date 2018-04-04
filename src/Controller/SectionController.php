@@ -6,6 +6,7 @@ use App\Entity\Manager;
 use App\Entity\Permissions;
 use App\Form\Data\Manager as ManagerData;
 use App\Form\ManagerType;
+use App\Form\ProductType;
 use App\Repository\ManagerRepository;
 use App\Service\Auth;
 use App\Service\Country;
@@ -179,6 +180,69 @@ class SectionController extends MRMController {
             'form' => $form->createView(),
             'errors' => $this->renderFormErrors($form),
             'PAGE_NAME' => 'Edit'
+        ]);
+    }
+
+    /**
+     * @Route("/product/{action}/{id}", name="route_section_product")
+     *
+     * @var Request $request
+     * @var string $action
+     * @var int $id
+     *
+     * @return RedirectResponse|Response
+     */
+    public function product(Request $request, string $action, int $id = null) {
+        if (!$this->getAuth()->isAuthenticated()) {
+            $this->getAuth()->logout();
+            return $this->redirectToLogin();
+        }
+
+        switch ($action) {
+            case 'list':
+                return $this->getProductList($request);
+            case 'new':
+                return $this->createNewProduct($request);
+
+        }
+
+        return new Response('');
+    }
+
+    private function getProductList(Request $request) {
+        if (!$this->getAuth()->canDo(Permissions::CAN_READ_CONFIGURATION)) {
+            $this->addFlash('danger', "You haven't permissions to do this action.");
+            return $this->redirectToDashboard();
+        }
+
+        return $this->render('sections/product-list.html.twig', [
+            'products' => $this->getComponents()->getProductsList()
+        ]);
+    }
+
+    private function createNewProduct(Request $request) {
+        if (!$this->getAuth()->canDo(Permissions::CAN_EDIT_CONFIGURATION)) {
+            $this->addFlash('danger', "You haven't permissions to do this action.");
+            return $this->redirectToDashboard();
+        }
+
+        $form = $this->createForm(ProductType::class, null, ['can_edit' => true]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+        }
+
+        return $this->render('sections/product.html.twig', [
+            'products' => $this->getComponents()->getProductsList(),
+            'errors' => $this->renderFormErrors($form),
+            'form' => $form->createView(),
+            'assets' => [
+                ['name' => 'EFR', 'value' => 15],
+                ['name' => 'USD', 'value' => 13],
+                ['name' => 'XRT', 'value' => 10],
+                ['name' => 'SM', 'value' => 19]
+            ]
         ]);
     }
 }

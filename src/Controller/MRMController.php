@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Service\Auth;
+use App\Service\Components;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -17,13 +18,16 @@ use Symfony\Component\Form\FormError;
  */
 class MRMController extends Controller {
     private $auth;
+    private $components;
 
     /**
      * MRMController constructor.
      * @param $auth
+     * @param $components
      */
-    public function __construct(Auth $auth) {
+    public function __construct(Auth $auth, Components $components) {
         $this->auth = $auth;
+        $this->components = $components;
     }
 
     /**
@@ -31,6 +35,13 @@ class MRMController extends Controller {
      */
     public function getAuth(): Auth {
         return $this->auth;
+    }
+
+    /**
+     * @return Components
+     */
+    public function getComponents(): Components {
+        return $this->components;
     }
 
     /**
