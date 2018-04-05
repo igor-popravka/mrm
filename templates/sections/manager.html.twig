@@ -3,7 +3,7 @@
 {% block breadcrumb %}
     {{ parent() }}
     <li class="breadcrumb-item">
-        <a href="{{ path('route_section_managers') }}">Managers</a>
+        <a href="{{ path('route_section_manager', {action: 'list'}) }}">Managers</a>
     </li>
     <li class="breadcrumb-item active">{{ PAGE_NAME }}</li>
 {% endblock %}
@@ -21,7 +21,7 @@
                     {{ errors | raw }}
                 </div>
             {% endif %}
-            <table>
+            <table width="50%">
                 <tr>
                     <td colspan="2"><h4>Account options:</h4></td>
                 </tr>

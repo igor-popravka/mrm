@@ -11,7 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type;
 class ManagerType extends AbstractType {
     public function buildForm(FormBuilderInterface $builder, array $options) {
         /** @var Manager $data */
-        $data = $options['data'];
+        $data = $options['data'] ?? null;
         $can_edit = $options['can_edit'];
 
         $builder

@@ -19,15 +19,18 @@ use Symfony\Component\Form\FormError;
 class MRMController extends Controller {
     private $auth;
     private $components;
+    private $mailer;
 
     /**
      * MRMController constructor.
      * @param $auth
      * @param $components
+     * @param $mailer
      */
-    public function __construct(Auth $auth, Components $components) {
+    public function __construct(Auth $auth, Components $components, \Swift_Mailer $mailer) {
         $this->auth = $auth;
         $this->components = $components;
+        $this->mailer = $mailer;
     }
 
     /**
@@ -42,6 +45,13 @@ class MRMController extends Controller {
      */
     public function getComponents(): Components {
         return $this->components;
+    }
+
+    /**
+     * @return \Swift_Mailer
+     */
+    public function getMailer(): \Swift_Mailer {
+        return $this->mailer;
     }
 
     /**

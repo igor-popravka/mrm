@@ -12,12 +12,6 @@
             <span class="float-sm-left">
                 <i class="fa fa-table"></i> MRM Managers
             </span>
-
-            {% if auth.canDo('edit_manager') %}
-                <a class="float-sm-right" href="{{ path('route_section_manager_new') }}" title="New manager">
-                    <i class="fa fa-fw fa-user-plus"></i>
-                </a>
-            {% endif %}
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -33,7 +27,7 @@
                     <tbody>
                     {% for manager in managers %}
                         <tr>
-                            <td><a href="{{ path('route_section_manager_edit', {id:  manager.getId()}) }}">{{ manager.getFullName() }}</a></td>
+                            <td><a href="{{ path('route_section_manager', {action: 'edit', id:  manager.getId()}) }}">{{ manager.getFullName() }}</a></td>
                             <td>{{ manager.getLogin() }}</td>
                             <td>{{ manager.getRole() }}</td>
                             <td>{{ manager.getStatus() == 1 ? 'active' : 'disabled' }}</td>
@@ -43,6 +37,13 @@
                 </table>
             </div>
         </div>
-        <div class="card-footer small text-muted"></div>
+        <div class="card-footer small text-muted">
+            {% if auth.canDo('edit_manager') %}
+                <a class="float-sm-left" href="{{ path('route_section_manager', {action: 'new'}) }}" title="New manager">
+                    <i class="fa fa-fw fa-user-plus"></i>
+                    Add New Manager
+                </a>
+            {% endif %}
+        </div>
     </div>
 {% endblock %}

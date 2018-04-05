@@ -41,15 +41,35 @@ class SectionController extends MRMController {
     }
 
     /**
-     * @Route("/managers", name="route_section_managers")
+     * @Route("/manager/{action}/{id}", name="route_section_manager")
+     *
+     * @param Request $request
+     * @param string $action
+     * @param int $id
      *
      * @return RedirectResponse|Response
      */
-    public function managers() {
+    public function manager(Request $request, string $action, int $id = null) {
         if (!$this->getAuth()->isAuthenticated()) {
             $this->getAuth()->logout();
             return $this->redirectToLogin();
-        } else if (!$this->getAuth()->canDo(Permissions::CAN_READ_MANAGER)) {
+        }
+
+        switch ($action) {
+            case 'list';
+                return $this->getManagerList();
+            case 'new':
+                return $this->createNewManager($request);
+            case 'edit':
+                return $this->editManager($request, $id);
+        }
+
+        $this->addFlash('danger', "The action {$action} is invalid.");
+        return $this->redirectToRoute('route_section_manager', ['action' => 'list']);
+    }
+
+    private function getManagerList() {
+        if (!$this->getAuth()->canDo(Permissions::CAN_READ_MANAGER)) {
             $this->addFlash('danger', "You haven't permissions to do this action.");
             return $this->redirectToDashboard();
         }
@@ -58,31 +78,18 @@ class SectionController extends MRMController {
         $managers = $repository->findAll();
 
         return $this->render(
-            'sections/managers.html.twig',
+            'sections/manager-list.html.twig',
             ['managers' => $managers]
         );
     }
 
-    /**
-     * @Route("/managers/new", name="route_section_manager_new")
-     *
-     *
-     * @param Request $request
-     * @param \Swift_Mailer $mailer
-     * @param PasswordEncoder $encoder
-     *
-     * @return RedirectResponse|Response
-     */
-    public function newManager(Request $request, \Swift_Mailer $mailer, PasswordEncoder $encoder) {
-        if (!$this->getAuth()->isAuthenticated()) {
-            $this->getAuth()->logout();
-            return $this->redirectToLogin();
-        } else if (!$this->getAuth()->canDo(Permissions::CAN_EDIT_MANAGER)) {
+    private function createNewManager(Request $request) {
+        if (!$this->getAuth()->canDo(Permissions::CAN_EDIT_MANAGER)) {
             $this->addFlash('danger', "You haven't permissions to do this action.");
             return $this->redirectToDashboard();
         }
 
-        $form = $this->createForm(ManagerType::class);
+        $form = $this->createForm(ManagerType::class, null, ['can_edit' => true]);
 
         $form->handleRequest($request);
 
@@ -91,21 +98,22 @@ class SectionController extends MRMController {
             $managerData = $form->getData();
 
             if (($token = $this->getAuth()->createNewManager($managerData)) instanceof MRMToken) {
-                $message = (new \Swift_Message('MRM Service | Invitation'))
-                    ->setFrom($this->getParameter('mrm_email'))
-                    ->setTo($token->getData()['login'])
-                    ->setBody($this->render('email/invite.html.twig', [
-                        'NAME' => $token->getData()['full_name'],
-                        'LOGIN' => $token->getData()['login'],
-                        'PASSWORD_RESET_LINK' => $this->generateUrl('route_password_change', [
-                            'hash' => $token->getHash()
-                        ], UrlGeneratorInterface::ABSOLUTE_URL),
-                        'EXPIRE_LINK' => 4
-                    ]), 'text/html');
-                $mailer->send($message);
+                $this->getMailer()->send(
+                    (new \Swift_Message('MRM Service | Invitation'))
+                        ->setFrom($this->getParameter('mrm_email'))
+                        ->setTo($token->getData()['login'])
+                        ->setBody($this->render('email/invite.html.twig', [
+                            'NAME' => $token->getData()['full_name'],
+                            'LOGIN' => $token->getData()['login'],
+                            'PASSWORD_RESET_LINK' => $this->generateUrl('route_password_change', [
+                                'hash' => $token->getHash()
+                            ], UrlGeneratorInterface::ABSOLUTE_URL),
+                            'EXPIRE_LINK' => 4
+                        ]), 'text/html')
+                    );
 
                 $this->addFlash('success', 'The new manager was created successfully and we sent massage with registration info.');
-                return $this->redirectToRoute('route_section_managers');
+                return $this->redirectToRoute('route_section_manager', ['action' => 'list']);
             }
 
             $form->addError(new FormError('Error during creating new account'));
@@ -114,25 +122,12 @@ class SectionController extends MRMController {
         return $this->render('sections/manager.html.twig', [
             'form' => $form->createView(),
             'errors' => $this->renderFormErrors($form),
-            'PAGE_NAME' => 'New'
+            'PAGE_NAME' => 'New Manager'
         ]);
     }
 
-    /**
-     * @Route("/manager/{id}", name="route_section_manager_edit")
-     *
-     *
-     * @param Request $request
-     * @param int $id
-     * @param PasswordEncoder $encoder
-     *
-     * @return RedirectResponse|Response
-     */
-    public function editManager(Request $request, int $id, PasswordEncoder $encoder) {
-        if (!$this->getAuth()->isAuthenticated()) {
-            $this->getAuth()->logout();
-            return $this->redirectToLogin();
-        } else if (!$this->getAuth()->canDo(Permissions::CAN_READ_MANAGER) && !$this->getAuth()->canDo(Permissions::CAN_EDIT_MANAGER)) {
+    private function editManager(Request $request, $id) {
+        if (!$this->getAuth()->canDo(Permissions::CAN_READ_MANAGER) && !$this->getAuth()->canDo(Permissions::CAN_EDIT_MANAGER)) {
             $this->addFlash('danger', "You haven't permissions to do this action.");
             return $this->redirectToDashboard();
         }
@@ -164,7 +159,7 @@ class SectionController extends MRMController {
 
             if ($this->getAuth()->updateManager($managerData)) {
                 $this->addFlash('success', 'The manager data was updated successfully.');
-                return $this->redirectToRoute('route_section_managers');
+                return $this->redirectToRoute('route_section_manager', ['action' => 'list']);
             }
 
             $form->addError(new FormError('Error during updating manager data'));
@@ -173,7 +168,7 @@ class SectionController extends MRMController {
         return $this->render('sections/manager.html.twig', [
             'form' => $form->createView(),
             'errors' => $this->renderFormErrors($form),
-            'PAGE_NAME' => 'Edit'
+            'PAGE_NAME' => 'Edit Manager'
         ]);
     }
 

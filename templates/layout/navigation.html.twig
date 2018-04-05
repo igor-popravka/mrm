@@ -14,7 +14,7 @@
             {# --- Show NO users link if a possibility --- #}
             {% if auth.canDo('read_manager') %}
             <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Managers">
-                <a class="nav-link" href="{{ path('route_section_managers') }}">
+                <a class="nav-link" href="{{ path('route_section_manager', {action: 'list'}) }}">
                     <i class="fa fa-fw fa-user-secret"></i>
                     <span class="nav-link-text">Managers</span>
                 </a>
