@@ -3,7 +3,6 @@
 namespace App\Form;
 
 use App\Form\Data\Product;
-use App\Service\ISO4217;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -36,7 +35,10 @@ class ProductType extends AbstractType {
                 ]
             ])
             ->add('currency', Type\ChoiceType::class, [
-                'choices' => ISO4217::getCryptoList(),
+                'choices' => [
+                    'BTC' => 'BTC',
+                    'USD' => 'USD'
+                ],
                 'attr' => [
                     'class' => 'form-control',
                     'disabled' => !$can_edit

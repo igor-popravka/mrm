@@ -9,32 +9,33 @@
 namespace App\Form\Data;
 
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Entity\Product as ProductEntity;
 
 class Product extends AbstractData {
     /**
      * @Assert\NotBlank(message="Please type code")
      */
-    private $code;
+    protected $code;
 
     /**
      * @Assert\NotBlank(message="Please type name")
      */
-    private $name;
+    protected $name;
 
     /**
      * @Assert\NotBlank(message="Please type cost")
      */
-    private $cost;
+    protected $cost;
 
     /**
      * @Assert\NotBlank(message="Please type currency")
      */
-    private $currency;
+    protected $currency;
 
     /**
      * @Assert\NotBlank(message="Please type assets")
      */
-    private $assets;
+    protected $assets;
 
     /**
      * @return mixed
@@ -96,13 +97,26 @@ class Product extends AbstractData {
      * @return mixed
      */
     public function getAssets() {
-        return $this->assets;
+        return json_encode($this->assets);
     }
 
     /**
      * @param mixed $assets
      */
     public function setAssets($assets): void {
+        if (is_string($assets)) {
+            $assets = json_decode($assets, true);
+        }
+
         $this->assets = $assets;
+    }
+
+    public function initEntity(ProductEntity $product){
+        $this->setCode($product->getCode());
+        $this->setName($product->getName());
+        $this->setCost($product->getCost());
+        $this->setCurrency($product->getCurrency());
+        $this->setAssets($product->getAssets());
+        return $this;
     }
 }

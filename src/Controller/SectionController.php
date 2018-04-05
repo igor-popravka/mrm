@@ -4,27 +4,21 @@ namespace App\Controller;
 
 use App\Entity\Manager;
 use App\Entity\Permissions;
+use App\Entity\Product as ProductEntity;
 use App\Form\Data\Manager as ManagerData;
+use App\Form\Data\Product as ProductData;
 use App\Form\ManagerType;
 use App\Form\ProductType;
-use App\Repository\ManagerRepository;
-use App\Service\Auth;
-use App\Service\Country;
 use App\Service\MRMToken;
 use App\Service\PasswordEncoder;
-use App\Service\Token;
-use App\Service\CRM\IFTZohoClient;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Form\Extension\Core\Type;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use App\Service\ISO4217;
 
 /**
  * @author: igor.popravka
@@ -203,10 +197,12 @@ class SectionController extends MRMController {
                 return $this->getProductList($request);
             case 'new':
                 return $this->createNewProduct($request);
-
+            case 'edit':
+                return $this->editProduct($request, $id);
         }
 
-        return new Response('');
+        $this->addFlash('danger', "The action {$action} is invalid.");
+        return $this->redirectToRoute('route_section_product', ['action' => 'list']);
     }
 
     private function getProductList(Request $request) {
@@ -230,19 +226,63 @@ class SectionController extends MRMController {
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
 
+            if ($this->getComponents()->insertProduct($data)) {
+                $this->addFlash('success', 'The product was crated successfully.');
+                return $this->redirectToRoute('route_section_product', ['action' => 'list']);
+            }
+
+            $form->addError(new FormError('Error during crating product'));
         }
 
         return $this->render('sections/product.html.twig', [
-            'products' => $this->getComponents()->getProductsList(),
             'errors' => $this->renderFormErrors($form),
-            'form' => $form->createView(),
-            'assets' => [
-                ['name' => 'EFR', 'value' => 15],
-                ['name' => 'USD', 'value' => 13],
-                ['name' => 'XRT', 'value' => 10],
-                ['name' => 'SM', 'value' => 19]
-            ]
+            'form_product' => $form->createView(),
+            'crypto_codes' => ISO4217::getCryptoList(),
+            'PAGE_NAME' => 'New Product'
         ]);
+    }
+
+    private function editProduct(Request $request, $id) {
+        if (!$this->getAuth()->canDo(Permissions::CAN_READ_CONFIGURATION) || !$this->getAuth()->canDo(Permissions::CAN_EDIT_CONFIGURATION)) {
+            $this->addFlash('danger', "You haven't permissions to do this action.");
+            return $this->redirectToDashboard();
+        }
+
+        if (($product = $this->getComponents()->getProduct($id)) instanceof ProductEntity) {
+            /** @var ProductEntity $product */
+            $form = $this->createForm(
+                ProductType::class,
+                (new ProductData())->initEntity($product),
+                ['can_edit' => $this->getAuth()->canDo(Permissions::CAN_EDIT_CONFIGURATION)]
+            );
+            $form->handleRequest($request);
+
+            if ($form->isSubmitted() && $form->isValid()) {
+                /** @var ProductData $productData */
+                $productData = $form->getData();
+
+                $productData->handleEntity($product);
+
+                if ($this->getComponents()->updateProduct($product)) {
+                    $this->addFlash('success', 'The product was updated successfully.');
+                    return $this->redirectToRoute('route_section_product', ['action' => 'list']);
+                }
+
+                $form->addError(new FormError('Error during updating product'));
+            }
+
+            return $this->render('sections/product.html.twig', [
+                'errors' => $this->renderFormErrors($form),
+                'form_product' => $form->createView(),
+                'crypto_codes' => ISO4217::getCryptoList(),
+                'assets' => $product->getAssets(),
+                'PAGE_NAME' => 'Edit Product'
+            ]);
+        }
+
+        $this->addFlash('danger', "The product #{$id} wasn't found.");
+        return $this->redirectToRoute('route_section_product', ['action' => 'list']);
     }
 }
